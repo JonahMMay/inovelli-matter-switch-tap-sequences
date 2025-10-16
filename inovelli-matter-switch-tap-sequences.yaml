@@ -19,6 +19,8 @@ blueprint:
       - Default brightness when turned on should match for all devices
       - If the target light already has a device setting for minimum brightness, then leave the blueprint minimum brightness at 1
 
+    Home Assistant's Matter Server Add-on now supports Matter Binding, allowing the lights to communicate directly with each other even when the matter server is down. If your target light supports matter binding, it is recommended you use that approach instead and disable light binding in this automation.
+
     ### Supported Models
       - VTM30-SN (White On/Off Switch)
       - VTM31-SN (White Dimmer Switch)
@@ -29,8 +31,9 @@ blueprint:
 
     Go to https://github.com/jay-kub/inovelli-matter-switch-tap-sequences to report issues or request new features.
 
-    Version 0.3.1
-    Bugfix: remove 'not_from: unknown' from trigger
+    Version 0.3.2 (10/15/2025)
+    Bugfix: light binding now works with VTM30-SN (tip: use the 'Show as' feature to create a light entity and disable Brightness Sync)
+    Bugfix: remove matter integration filter from Inovelli Switch Light 
   domain: automation
   author: jay-kub
   homeassistant:
@@ -227,7 +230,6 @@ blueprint:
             entity:
               filter:
               - domain: light
-                integration: matter
               multiple: false
         target_light:
           name: Target Light
@@ -242,7 +244,9 @@ blueprint:
               multiple: false
         brightness_sync:
           name: Brightness Sync
-          description: Sync the brightness from the Inovelli Switch to the Target Light
+          description: |
+            Sync the brightness from the Inovelli Switch to the Target Light
+            Note: this setting must be disabled if your Switch Mode is set to On/Off
           default: true
           selector:
             boolean: {}
@@ -285,6 +289,7 @@ variables:
   reverseSyncEnabled: !input reverse_sync
   inovelliLight: !input entity_light
   targetFan: !input target_fan
+  brightnessSyncEnabled: !input brightness_sync
 
 trigger:
   - platform: state
@@ -308,6 +313,12 @@ trigger:
     from: "on"
     to: "off"
   - platform: state
+    enabled: '{{ inovelliLight is not none and not brightnessSyncEnabled }}'
+    entity_id: !input entity_light
+    id: turnOn
+    from: "off"
+    to: "on"
+  - platform: state
     entity_id: !input target_light
     id: reverseSyncTurnOff
     from: "on"
@@ -321,7 +332,7 @@ trigger:
     enabled: '{{ inovelliLight is not none }}'
     entity_id: !input entity_light
     attribute: brightness
-    id: turnOn
+    id: turnOnWithBrightness
 
 condition: []
 
@@ -484,6 +495,16 @@ action:
   - conditions:
       - condition: trigger
         id:
+          - turnOn
+    sequence:
+    - action: light.turn_on
+      metadata: {}
+      data: {}
+      target:
+        entity_id: !input target_light
+  - conditions:
+      - condition: trigger
+        id:
           - reverseSyncTurnOff
           - reverseSyncTurnOn
     sequence:
@@ -511,7 +532,7 @@ action:
   - conditions:
       - condition: trigger
         id:
-          - turnOn
+          - turnOnWithBrightness
       - condition: state
         entity_id: !input entity_light
         state: "on" 
@@ -524,18 +545,12 @@ action:
           {{ (((100 - minBrightness) / 100 ) * inovelliLightBrightness + minBrightness ) | round(0) }}
         brightnessSyncEnabled: !input brightness_sync
     - choose:
-      - conditions: '{{ brightnessSyncEnabled and inovelliLightBrightness != 0 }}'
+      - conditions: '{{ inovelliLightBrightness != 0 }}'
         sequence:
         - action: light.turn_on
           metadata: {}
           data:
             brightness_pct: '{{ targetBrightnessPct }}'
-          target:
-            entity_id: !input target_light
-      - conditions:
-        sequence:
-        - action: light.turn_on
-          metadata: {}
           target:
             entity_id: !input target_light
 - if: '{{ targetFan != [] }}'

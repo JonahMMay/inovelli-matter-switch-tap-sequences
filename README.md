@@ -10,10 +10,12 @@
  - Transition speed should be set to 0 for all devices
  - Default brightness when turned on should match for all devices
  - If the target light already has a device setting for minimum brightness, then leave the blueprint minimum brightness at 1
+ Home Assistant's Matter Server Add-on now supports Matter Binding, allowing the lights to communicate directly with each other even when the matter server is down. If your target light supports matter binding, it is recommended you use that approach instead and disable light binding in this automation.
 ### Supported Models
 - VTM30-SN (White On/Off Switch)
 - VTM31-SN (White Dimmer Switch)
 - VTM35-SN (White Fan Switch)
 - VTM36 (White Fan/Light Canopy Module)
-#### Version 0.3.1
-Bugfix: remove 'not_from: unknown' from trigger
+#### Version 0.3.2 (10/15/2025)
+Bugfix: light binding now works with VTM30-SN (tip: use the 'Show as' feature to create a light entity and disable Brightness Sync)
+Bugfix: remove matter integration filter from Inovelli Switch Light 
