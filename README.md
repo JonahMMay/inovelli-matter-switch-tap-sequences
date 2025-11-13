@@ -16,6 +16,10 @@
 - VTM31-SN (White Dimmer Switch)
 - VTM35-SN (White Fan Switch)
 - VTM36 (White Fan/Light Canopy Module)
+
+#### Version 0.3.3 (11/12/2025)
+Bugfix: Added config button checks to fan conditions so up press no longer causes the fan to turn on when native Matter binding is enabled between the VTM31-SN dimmer and VTM36 light endpoints
+
 #### Version 0.3.2 (10/15/2025)
 Bugfix: light binding now works with VTM30-SN (tip: use the 'Show as' feature to create a light entity and disable Brightness Sync)
 Bugfix: remove matter integration filter from Inovelli Switch Light 
