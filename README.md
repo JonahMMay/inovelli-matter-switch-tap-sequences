@@ -17,4 +17,4 @@
 - VTM35-SN (White Fan Switch)
 - VTM36 (White Fan/Light Canopy Module)
 #### Version 0.3.3 (11/13/2025)
-Bugfix: Bugfix: added config button check to fan sync
+Bugfix: added config button check to fan sync
